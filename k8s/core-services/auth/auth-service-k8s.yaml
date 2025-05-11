@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: auth-service-container
-          image: mariuspreda/auth-service:d39afe9cd0a0f050479cac45900de25069f56feb
+          image: mariuspreda/auth-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5051
@@ -34,14 +34,14 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: JWT_SECRET_KEY
-            - name: SECRET_KEY # Flask's own secret key
+            - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: FLASK_SECRET_KEY
             - name: MONGO_URI
               value: "mongodb://auth-mongo-svc.kindergarten-app.svc.cluster.local:27017/authdb"
-              # Consider adding livenessProbe and readinessProbe
+        # Consider adding livenessProbe and readinessProbe
 ---
 # --- Service for auth-service ---
 apiVersion: v1
