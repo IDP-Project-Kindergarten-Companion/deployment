@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: auth-service-container
-          image: mariuspreda/auth-service:43351bfd8a27cd4317e6ba544e9ebbaa923a63f4
+          image: mariuspreda/auth-service:d39afe9cd0a0f050479cac45900de25069f56feb
           imagePullPolicy: Always
           ports:
             - containerPort: 5051
@@ -60,3 +60,6 @@ spec:
       name: http
   selector:
     app: auth-service
+  template:
+    spec:
+      containers: []
