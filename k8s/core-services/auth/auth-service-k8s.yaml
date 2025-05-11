@@ -1,29 +1,47 @@
 # auth-service-k8s.yaml
 
 # --- Deployment for auth-service ---
-name: auth-service-container
-image: mariuspreda/auth-service:26a284525f4199c6b6b8ca24cb8911c91cedadb0
-imagePullPolicy: Always
-ports:
-  - containerPort: 5051
-env:
-  - name: FLASK_APP
-    value: "run.py"
-  - name: FLASK_ENV
-    value: "development"
-  - name: JWT_SECRET_KEY
-    valueFrom:
-      secretKeyRef:
-        name: app-secrets
-        key: JWT_SECRET_KEY
-  - name: SECRET_KEY # Flask's own secret key
-    valueFrom:
-      secretKeyRef:
-        name: app-secrets
-        key: FLASK_SECRET_KEY
-  - name: MONGO_URI
-    value: "mongodb://auth-mongo-svc.kindergarten-app.svc.cluster.local:27017/authdb"
-    # Consider adding livenessProbe and readinessProbe
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-deployment
+  namespace: kindergarten-app
+  labels:
+    app: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service-container
+          image: mariuspreda/auth-service:d39afe9cd0a0f050479cac45900de25069f56feb
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5051
+          env:
+            - name: FLASK_APP
+              value: "run.py"
+            - name: FLASK_ENV
+              value: "development"
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_SECRET_KEY
+            - name: SECRET_KEY # Flask's own secret key
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: FLASK_SECRET_KEY
+            - name: MONGO_URI
+              value: "mongodb://auth-mongo-svc.kindergarten-app.svc.cluster.local:27017/authdb"
+              # Consider adding livenessProbe and readinessProbe
 ---
 # --- Service for auth-service ---
 apiVersion: v1
