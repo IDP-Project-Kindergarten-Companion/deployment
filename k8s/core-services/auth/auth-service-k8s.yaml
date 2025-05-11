@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: auth-service-container
-          image: mariuspreda/auth-service:placeholder # <-- FIXED: Set a valid placeholder
+          image: mariuspreda/auth-service:43351bfd8a27cd4317e6ba544e9ebbaa923a63f4 # <-- FIXED: Set a valid placeholder
           imagePullPolicy: Always
           ports:
             - containerPort: 5051 # Port EXPOSEd in your auth-service Dockerfile
@@ -41,7 +41,7 @@ spec:
                   key: FLASK_SECRET_KEY
             - name: MONGO_URI # Points to the Kubernetes Service for auth MongoDB
               value: "mongodb://auth-mongo-svc.kindergarten-app.svc.cluster.local:27017/authdb"
-          # Consider adding livenessProbe and readinessProbe
+              # Consider adding livenessProbe and readinessProbe
 ---
 # --- Service for auth-service ---
 apiVersion: v1
@@ -60,4 +60,7 @@ spec:
       name: http
   selector:
     app: auth-service
+  template:
+    spec:
+      containers: []
 # REMOVED invalid template section from here
