@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: auth-service-container
-          image: "" # Your Docker Hub image
+          image: mariuspreda/auth-service:placeholder # <-- FIXED: Set a valid placeholder
           imagePullPolicy: Always
           ports:
             - containerPort: 5051 # Port EXPOSEd in your auth-service Dockerfile
@@ -41,22 +41,7 @@ spec:
                   key: FLASK_SECRET_KEY
             - name: MONGO_URI # Points to the Kubernetes Service for auth MongoDB
               value: "mongodb://auth-mongo-svc.kindergarten-app.svc.cluster.local:27017/authdb"
-              # If auth-service needs to call db-interact-service directly:
-              # - name: DB_INTERACT_SERVICE_URL
-              #   value: "http://db-interact-svc.kindergarten-app.svc.cluster.local:5000"
           # Consider adding livenessProbe and readinessProbe
-          # livenessProbe:
-          #   httpGet:
-          #     path: /health
-          #     port: 5051
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 20
-          # readinessProbe:
-          #   httpGet:
-          #     path: /health
-          #     port: 5051
-          #   initialDelaySeconds: 5
-          #   periodSeconds: 10
 ---
 # --- Service for auth-service ---
 apiVersion: v1
@@ -75,6 +60,4 @@ spec:
       name: http
   selector:
     app: auth-service
-  template:
-    spec:
-      containers: []
+# REMOVED invalid template section from here
