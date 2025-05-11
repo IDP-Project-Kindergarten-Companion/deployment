@@ -1,0 +1,75 @@
+# db-interact-k8s.yaml
+
+# --- Deployment for db-interact-service ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-interact-deployment
+  namespace: kindergarten-app
+  labels:
+    app: db-interact
+spec:
+  replicas: 1 # Start with one replica
+  selector:
+    matchLabels:
+      app: db-interact
+  template: # Pod template
+    metadata:
+      labels:
+        app: db-interact
+    spec:
+      containers:
+      - name: db-interact-container
+        image: mariuspreda/db-interact:latest # Your Docker Hub image
+        imagePullPolicy: Always # Or IfNotPresent if using local images often
+        ports:
+        - containerPort: 5000 # Port EXPOSEd in your db-interact Dockerfile
+        env:
+          - name: FLASK_APP
+            value: "run.py"
+          - name: FLASK_ENV
+            value: "development" # Change to "production" for actual deployment
+          - name: JWT_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets # Refers to the K8s Secret defined earlier
+                key: JWT_SECRET_KEY
+          - name: SECRET_KEY # Flask's own secret key
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: FLASK_SECRET_KEY
+          - name: OPERATIONAL_MONGO_URI # Points to the Kubernetes Service for operational MongoDB
+            value: "mongodb://operational-mongo-svc.kindergarten-app.svc.cluster.local:27017/littlesteps_db"
+        # Consider adding livenessProbe and readinessProbe for health checks
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health # Assuming you have a health check endpoint
+        #     port: 5000
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 5000
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
+
+---
+# --- Service for db-interact-service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-interact-svc # DNS name for other services to call db-interact
+  namespace: kindergarten-app
+  labels:
+    app: db-interact
+spec:
+  type: ClusterIP # Default, makes it reachable only within the cluster
+  ports:
+  - port: 5000 # Port the service will be available on within the cluster
+    targetPort: 5000 # Must match the containerPort of the db-interact pods
+    protocol: TCP
+    name: http
+  selector:
+    app: db-interact # Selects pods with label app=db-interact

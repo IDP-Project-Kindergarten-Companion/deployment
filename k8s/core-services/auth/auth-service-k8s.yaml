@@ -1,0 +1,77 @@
+# auth-service-k8s.yaml
+
+# --- Deployment for auth-service ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-deployment
+  namespace: kindergarten-app
+  labels:
+    app: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: auth-service-container
+        image: mariuspreda/auth-service:latest # Your Docker Hub image
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5051 # Port EXPOSEd in your auth-service Dockerfile
+        env:
+          - name: FLASK_APP
+            value: "run.py"
+          - name: FLASK_ENV
+            value: "development"
+          - name: JWT_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: JWT_SECRET_KEY
+          - name: SECRET_KEY # Flask's own secret key
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: FLASK_SECRET_KEY
+          - name: MONGO_URI # Points to the Kubernetes Service for auth MongoDB
+            value: "mongodb://auth-mongo-svc.kindergarten-app.svc.cluster.local:27017/authdb"
+          # If auth-service needs to call db-interact-service directly:
+          # - name: DB_INTERACT_SERVICE_URL
+          #   value: "http://db-interact-svc.kindergarten-app.svc.cluster.local:5000"
+        # Consider adding livenessProbe and readinessProbe
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 5051
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 5051
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
+---
+# --- Service for auth-service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-svc # DNS name for other services (like an API Gateway) to call auth-service
+  namespace: kindergarten-app
+  labels:
+    app: auth-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5051 # Port the service will be available on within the cluster
+    targetPort: 5051 # Must match the containerPort of the auth-service pods
+    protocol: TCP
+    name: http
+  selector:
+    app: auth-service
