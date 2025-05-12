@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
       - name: db-interact-container
-        image: mariuspreda/db-interact:latest # Your Docker Hub image
-        imagePullPolicy: Always # Or IfNotPresent if using local images often
+        image: mariuspreda/db-interact:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000 # Port EXPOSEd in your db-interact Dockerfile
         env:
@@ -42,19 +42,6 @@ spec:
           - name: OPERATIONAL_MONGO_URI # Points to the Kubernetes Service for operational MongoDB
             value: "mongodb://operational-mongo-svc.kindergarten-app.svc.cluster.local:27017/littlesteps_db"
         # Consider adding livenessProbe and readinessProbe for health checks
-        # livenessProbe:
-        #   httpGet:
-        #     path: /health # Assuming you have a health check endpoint
-        #     port: 5000
-        #   initialDelaySeconds: 15
-        #   periodSeconds: 20
-        # readinessProbe:
-        #   httpGet:
-        #     path: /health
-        #     port: 5000
-        #   initialDelaySeconds: 5
-        #   periodSeconds: 10
-
 ---
 # --- Service for db-interact-service ---
 apiVersion: v1
