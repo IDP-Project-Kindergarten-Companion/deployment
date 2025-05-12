@@ -1,1 +1,1 @@
-./k8s/core-services/app-secrets.yaml
+k8s/core-services/app-secrets.yaml
