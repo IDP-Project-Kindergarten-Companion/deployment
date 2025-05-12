@@ -18,45 +18,34 @@ spec:
     spec:
       containers:
         - name: activity-log-container
-          image: mariuspreda/activity-log-service:latest # Your Docker Hub image
-          imagePullPolicy: Always # To always pull the latest tag
+          image: mariuspreda/activity-log-service:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 5003 # Port EXPOSEd in your Dockerfile
+            - containerPort: 5003
           env:
             - name: FLASK_APP 
-              value: "app.py" 
+              value: "app.py"
             - name: FLASK_ENV
               value: "development"
-            # JWT and Flask Secret Keys from Kubernetes Secrets
+            # Crucial: Ensure these are correctly sourcing from your app-secrets
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets 
-                  key: JWT_SECRET_KEY
-            - name: SECRET_KEY # For Flask session or other app.config uses
+                  name: app-secrets # Name of your Kubernetes Secret
+                  key: JWT_SECRET_KEY # Key within that Secret
+            - name: SECRET_KEY # For Flask app.secret_key
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
-                  key: FLASK_SECRET_KEY # Assuming you use the same key as other Flask apps
+                  key: FLASK_SECRET_KEY # Key within that Secret
             # Environment variables for connecting to db-interact-service
             - name: DB_INTERACT_SERVICE_HOST
               value: "db-interact-svc.kindergarten-app.svc.cluster.local"
             - name: DB_INTERACT_SERVICE_PORT
-              value: "5000" # The port db-interact-svc listens on
+              value: "5000" 
             - name: DB_INTERACT_LOG_ACTIVITY_ROUTE
-              value: "/internal/activities" # Target endpoint on db-interact
-          livenessProbe:
-            httpGet:
-              path: /health 
-              port: 5003
-            initialDelaySeconds: 25 # Increased delay
-            periodSeconds: 30
-          readinessProbe:
-            httpGet:
-              path: /health 
-              port: 5003
-            initialDelaySeconds: 15 # Increased delay
-            periodSeconds: 20
+              value: "/internal/activities" 
+      # add livenessProbe and readinessProbe
 ---
 # deployment/k8s/core-services/activity-log/activity-log-svc.yaml
 apiVersion: v1
