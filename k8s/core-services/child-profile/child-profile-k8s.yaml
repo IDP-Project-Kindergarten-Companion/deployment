@@ -1,0 +1,64 @@
+# deployment/k8s/core-services/child-profile/child-profile-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: child-profile-deployment
+  namespace: kindergarten-app
+  labels:
+    app: child-profile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: child-profile
+  template:
+    metadata:
+      labels:
+        app: child-profile
+    spec:
+      containers:
+        - name: child-profile-container
+          image: mariuspreda/child-profile-service:latest # Imaginea Docker Hub
+          imagePullPolicy: Always # Pentru a prelua mereu :latest
+          ports:
+            - containerPort: 5002 # Portul intern al aplicației child-profile
+          env:
+            - name: FLASK_APP
+              value: "app.py"
+            - name: FLASK_ENV
+              value: "development"
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets # Secretul partajat pentru JWT
+                  key: JWT_SECRET_KEY
+            - name: SECRET_KEY # Secretul Flask (dacă este diferit sau necesar)
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: FLASK_SECRET_KEY
+            - name: DB_INTERACT_SERVICE_URL # URL-ul pentru a comunica cu db-interact-service
+              # Presupunând că db-interact-svc rulează pe portul 5000 în cluster
+              value: "http://db-interact-svc.kindergarten-app.svc.cluster.local:5000"
+            # Dacă child-profile-service trebuie să valideze token-uri apelând auth-service:
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-svc.kindergarten-app.svc.cluster.local:5051"
+          # TODO: Adăugați livenessProbe și readinessProbe
+---
+# deployment/k8s/core-services/child-profile/child-profile-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: child-profile-svc
+  namespace: kindergarten-app
+  labels:
+    app: child-profile
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5002 # Portul pe care serviciul va fi disponibil în cluster
+      targetPort: 5002 # Portul containerului child-profile
+      protocol: TCP
+      name: http
+  selector:
+    app: child-profile
