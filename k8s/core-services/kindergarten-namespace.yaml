@@ -1,5 +1,4 @@
-# kindergarten-namespace.yaml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: kindergarten-app # Namespace for all your application components
+  name: kindergarten-app
