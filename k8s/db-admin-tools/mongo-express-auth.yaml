@@ -1,0 +1,52 @@
+# deployment/k8s/db-admin-tools/mongo-express-auth.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express-auth-deployment
+  namespace: kindergarten-app
+  labels:
+    app: mongo-express-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express-auth
+  template:
+    metadata:
+      labels:
+        app: mongo-express-auth
+    spec:
+      containers:
+      - name: mongo-express-auth-container
+        image: mongo-express:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081 # Default port Mongo Express listens on
+        env:
+        # --- MongoDB Connection Configuration ---
+        - name: ME_CONFIG_MONGODB_SERVER
+          # Points to your Kubernetes service for the auth MongoDB
+          value: "auth-mongo-svc.kindergarten-app.svc.cluster.local" 
+          # Or just "auth-mongo-svc" if Mongo Express is in the same namespace (kindergarten-app)
+        - name: ME_CONFIG_MONGODB_PORT
+          value: "27017" # Default MongoDB port
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-auth-svc
+  namespace: kindergarten-app
+  labels:
+    app: mongo-express-auth
+spec:
+  type: NodePort # Exposes the service on each Node's IP at a static port.
+  ports:
+    - port: 8081       # Internal port the service listens on
+      targetPort: 8081 # Port on the mongo-express container
+      nodePort: 31001  # Optional: Specify a static NodePort (e.g., 30000-32767)
+      protocol: TCP
+      name: http
+  selector:
+    app: mongo-express-auth

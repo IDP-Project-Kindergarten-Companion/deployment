@@ -1,0 +1,52 @@
+# deployment/k8s/db-admin-tools/mongo-express-op.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express-op-deployment
+  namespace: kindergarten-app
+  labels:
+    app: mongo-express-op
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express-op
+  template:
+    metadata:
+      labels:
+        app: mongo-express-op
+    spec:
+      containers:
+      - name: mongo-express-op-container
+        image: mongo-express:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081 # Default port Mongo Express listens on
+        env:
+        # --- MongoDB Connection Configuration ---
+        - name: ME_CONFIG_MONGODB_SERVER
+          # Points to your Kubernetes service for the operational MongoDB
+          value: "operational-mongo-svc.kindergarten-app.svc.cluster.local"
+          # Or just "operational-mongo-svc"
+        - name: ME_CONFIG_MONGODB_PORT
+          value: "27017"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-op-svc
+  namespace: kindergarten-app
+  labels:
+    app: mongo-express-op
+spec:
+  type: NodePort 
+  ports:
+    - port: 8081       # Internal port the service listens on
+      targetPort: 8081 # Port on the mongo-express container
+      nodePort: 31002  # Optional: Specify a different static NodePort
+      protocol: TCP
+      name: http
+  selector:
+    app: mongo-express-op
