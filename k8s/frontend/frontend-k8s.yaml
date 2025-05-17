@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kindergarten-app # Assuming you want to deploy it in the same namespace
+  # If the namespace already exists from your other files, this block can be omitted
+  # or ensure it's consistent.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: kindergarten-app
+  labels:
+    app: frontend
+spec:
+  replicas: 1 # Start with 1, adjust as needed
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        # IMPORTANT: Replace this with your ACTUAL Docker Hub username, image name, and the tag
+        # that your CI/CD pipeline built and pushed.
+        # For example: image: mydockerhubuser/my-frontend-image:latest
+        # Or: image: mydockerhubuser/my-frontend-image:main
+        # Or: image: mydockerhubuser/my-frontend-image:<commit-sha>
+        image: mariuspreda/kindergarten-frontend:main # Make sure this is your correct image and tag
+        ports:
+        - containerPort: 80 # Port exposed by Nginx in your Docker image
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  namespace: kindergarten-app
+spec:
+  selector:
+    app: frontend
+  ports:
+  - protocol: TCP
+    port: 80 # Port the service will listen on
+    targetPort: 80 # Port the container (Nginx) is listening on
+  type: ClusterIP # Exposes the service internally within the cluster
