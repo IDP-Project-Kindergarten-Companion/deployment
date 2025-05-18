@@ -1,10 +1,5 @@
 # auth-mongo.yaml
 
-# --- PersistentVolumeClaim for Auth MongoDB ---
-# This defines the storage request. A PersistentVolume will be dynamically provisioned
-# if your cluster has a default StorageClass, or you can pre-provision one.
-# Note: StatefulSet can also define volumeClaimTemplates directly.
-
 # --- StatefulSet for Auth MongoDB ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -14,42 +9,41 @@ metadata:
   labels:
     app: auth-mongo
 spec:
-  serviceName: "auth-mongo-svc" # Governs the network identity of the pods
-  replicas: 1 # For a single MongoDB instance
+  serviceName: "auth-mongo-svc"
+  replicas: 1 
   selector:
     matchLabels:
       app: auth-mongo
-  template: # Pod template
+  template:
     metadata:
       labels:
         app: auth-mongo
     spec:
       containers:
       - name: mongo
-        image: mongo:latest # Or a specific version like mongo:5.0
+        image: mongo:latest 
         ports:
         - containerPort: 27017
           name: mongo
         volumeMounts:
-        - name: mongo-persistent-storage-auth # Mount path for data
+        - name: mongo-persistent-storage-auth 
           mountPath: /data/db
         # readinessProbe & livenessProbe can be added for MongoDB
-  volumeClaimTemplates: # Defines the PVC to be created for each replica
+  volumeClaimTemplates:
   - metadata:
       name: mongo-persistent-storage-auth
     spec:
-      accessModes: [ "ReadWriteOnce" ] # Can be mounted by a single node
+      accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 50Mi # Adjust size as needed
-      # storageClassName: "your-storage-class" # Uncomment if you have a specific storage class
+          storage: 50Mi 
 
 ---
 # --- Service for Auth MongoDB ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-mongo-svc # DNS name for auth-service to connect to this MongoDB
+  name: auth-mongo-svc 
   namespace: kindergarten-app
   labels:
     app: auth-mongo
@@ -58,6 +52,6 @@ spec:
   - port: 27017
     targetPort: 27017
     name: mongo
-  clusterIP: None # Creates a headless service, suitable for StatefulSets
+  clusterIP: None 
   selector:
     app: auth-mongo

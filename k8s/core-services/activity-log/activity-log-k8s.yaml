@@ -21,23 +21,23 @@ spec:
           image: mariuspreda/activity-log-service:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 5003 # Port EXPOSEd in your Dockerfile
+            - containerPort: 5003
           env:
             - name: FLASK_APP 
-              value: "app.py" # Matches your activity-log-service/app.py
+              value: "app.py"
             - name: FLASK_ENV
               value: "development"
             # This section is critical for JWT secrets
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets      # Must be 'app-secrets'
-                  key: JWT_SECRET_KEY  # Must be 'JWT_SECRET_KEY' (case-sensitive)
-            - name: SECRET_KEY # For Flask app.secret_key if used by activity-log-service
+                  name: app-secrets 
+                  key: JWT_SECRET_KEY 
+            - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets      # Must be 'app-secrets'
-                  key: FLASK_SECRET_KEY  # Must be 'FLASK_SECRET_KEY'
+                  name: app-secrets 
+                  key: FLASK_SECRET_KEY 
             # Environment variables for connecting to db-interact-service
             - name: DB_INTERACT_SERVICE_HOST
               value: "db-interact-svc.kindergarten-app.svc.cluster.local"
